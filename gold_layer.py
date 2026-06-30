@@ -1,9 +1,14 @@
 import pandas as pd
 import sqlite3
 
+# ============================================
+# CONNECT TO DATABASE
+# ============================================
 conn = sqlite3.connect('ecommerce.db')
 
-# Always read from silver
+# ============================================
+# STEP 1 — READ FROM SILVER
+# ============================================
 df = pd.read_sql("SELECT * FROM silver_orders", conn)
 
 print("=== SILVER DATA ===")
@@ -15,24 +20,21 @@ print(df.dtypes)
 print("\nFirst 5 Rows:")
 print(df.head())
 
-
-
-print("\n=== FIXING DATE ===")
-
-df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-
-# Extract extra date parts for business use
-df['Year']  = df['Date'].dt.year
-df['Month'] = df['Date'].dt.month
-df['Day']   = df['Date'].dt.day
+# ============================================
+# STEP 2 — FIX DATE AND EXTRACT PARTS
+# ============================================
+df['Date']       = pd.to_datetime(df['Date'], errors='coerce')
+df['Year']       = df['Date'].dt.year
+df['Month']      = df['Date'].dt.month
+df['Day']        = df['Date'].dt.day
 df['Month_Name'] = df['Date'].dt.strftime('%B')
 
-print("Date fixed and extracted ✅")
+print("\n=== DATE EXTRACTED ===")
 print(df[['Date','Year','Month','Day','Month_Name']].head())
 
-
-# gold summary begins
-
+# ============================================
+# STEP 3 — BUILD GOLD SUMMARY
+# ============================================
 print("\n=== BUILDING GOLD SUMMARY ===")
 
 gold = df.groupby([
@@ -57,54 +59,77 @@ print("Gold rows created:", len(gold))
 print("\nFirst 5 rows:")
 print(gold.head())
 
+# ============================================
+# STEP 4 — ADD BUSINESS KPI COLUMNS
+# ============================================
+print("\n=== ADDING KPIs ===")
 
-# Kpi Creation 
-print("\n=== ADDING BUSINESS KPIs ===")
-
-# Revenue per unit sold
+# How much each unit earns
 gold['revenue_per_unit'] = (
     gold['total_revenue'] / gold['total_units']
 ).round(2)
 
-# Average order value
+# Average spend per order
 gold['avg_order_value'] = (
     gold['total_revenue'] / gold['order_count']
 ).round(2)
 
-# Revenue contribution percentage
+# What % of total revenue this row contributes
 gold['revenue_contribution_%'] = (
-    gold['total_revenue'] / 
+    gold['total_revenue'] /
     gold['total_revenue'].sum() * 100
 ).round(2)
 
-# Performance tag based on revenue
+# Tag each row based on revenue range
 gold['performance_tag'] = pd.cut(
     gold['total_revenue'],
     bins=[0, 100, 500, 1000, float('inf')],
     labels=['Low', 'Medium', 'High', 'Top']
 )
 
-print("KPI columns added ✅")
+print("KPIs added ✅")
 print(gold.columns.tolist())
 
+# ============================================
+# STEP 5 — BUSINESS QUALITY CHECK
+# ============================================
+print("\n=== BUSINESS QUALITY CHECK ===")
 
-# check once them
-print("\n=== GOLD QUALITY CHECK ===")
-print("Nulls:\n", gold.isnull().sum())
-print("\nTotal Revenue Sum:", round(gold['total_revenue'].sum(), 2))
-print("Total Units Sum:", gold['total_units'].sum())
+print("\nNulls in Gold:")
+print(gold.isnull().sum())
+
+print("\nTotal Revenue:", round(gold['total_revenue'].sum(), 2))
+print("Total Units Sold:", gold['total_units'].sum())
 print("Total Orders:", gold['order_count'].sum())
+
 print("\nRevenue by Category:")
-print(gold.groupby('Product Category')['total_revenue'].sum().sort_values(ascending=False))
+print(gold.groupby('Product Category')['total_revenue']
+      .sum()
+      .sort_values(ascending=False))
+
 print("\nRevenue by Region:")
-print(gold.groupby('Region')['total_revenue'].sum().sort_values(ascending=False))
+print(gold.groupby('Region')['total_revenue']
+      .sum()
+      .sort_values(ascending=False))
 
+print("\nRevenue by Payment Method:")
+print(gold.groupby('Payment Method')['total_revenue']
+      .sum()
+      .sort_values(ascending=False))
 
-# save the data
-# Add aggregated timestamp
+print("\nRevenue by Month:")
+print(gold.groupby('Month_Name')['total_revenue']
+      .sum()
+      .sort_values(ascending=False))
+
+print("\nPerformance Tag Distribution:")
+print(gold['performance_tag'].value_counts())
+
+# ============================================
+# STEP 6 — SAVE TO GOLD
+# ============================================
 gold['aggregated_at'] = pd.Timestamp.now()
 
-# Save to gold
 gold.to_sql('gold_summary', conn,
             if_exists='replace',
             index=False)
@@ -112,7 +137,9 @@ gold.to_sql('gold_summary', conn,
 print("\n✅ Gold layer loaded!")
 print("Rows inserted:", len(gold))
 
-# verify the gold
+# ============================================
+# STEP 7 — VERIFY GOLD
+# ============================================
 gold_check = pd.read_sql(
     "SELECT * FROM gold_summary LIMIT 5",
     conn
@@ -127,7 +154,7 @@ count = pd.read_sql(
 )
 print("\nTotal rows in Gold:", count['total'][0])
 
-print("\nGold Columns:")
+print("\nFinal Columns:")
 print(gold.columns.tolist())
 
 print("\nFinal Data Types:")

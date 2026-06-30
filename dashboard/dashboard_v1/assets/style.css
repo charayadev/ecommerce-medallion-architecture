@@ -1,0 +1,58 @@
+/* Main background */
+.stApp {
+    background-color: #9faecd;
+    color: #F8FAFC;
+}
+
+/* Sidebar styling */
+[data-testid="stSidebar"] {
+    background-color: #7c8088 !important;
+}
+
+/* ------------------------------------------------------------- */
+/* MULTISELECT FILTER VISIBILITY FIXES                           */
+/* ------------------------------------------------------------- */
+
+/* The main input box */
+div[data-baseweb="select"] > div {
+    background-color: #0B1426 !important;
+    color: #F8FAFC !important;
+    border: 1px solid #2D3748 !important;
+}
+
+/* The dropdown menu list */
+ul[data-baseweb="menu"] {
+    background-color: #131F37 !important;
+    border: 1px solid #2D3748 !important;
+}
+
+/* The options inside the dropdown */
+li[role="option"] {
+    color: #F8FAFC !important;
+    background-color: transparent !important;
+}
+
+/* Hover effect on dropdown options */
+li[role="option"]:hover {
+    background-color: #3B82F6 !important;
+    color: white !important;
+}
+
+/* The selected tags (chips) */
+span[data-baseweb="tag"] {
+    background-color: #3B82F6 !important;
+    color: white !important;
+}
+
+/* Clear 'x' button on tags */
+span[data-baseweb="tag"] span[role="button"] {
+    color: white !important;
+}
+
+/* Subheaders and labels */
+.st-emotion-cache-10trnc2, .st-emotion-cache-16idsys p {
+    color: #F8FAFC !important;
+}
+
+/* Hide top header */
+header {visibility: hidden;}
