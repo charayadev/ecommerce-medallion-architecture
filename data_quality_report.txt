@@ -1,0 +1,5 @@
+DATA QUALITY REPORT - 2026-07-01 20:09:09.081924
+Bronze rows: 240
+Silver rows: 221
+Gold rows: 221
+Pass rate: 92.08%
