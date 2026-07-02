@@ -232,7 +232,7 @@ Built with **Streamlit + Plotly**, fully modularized across `utils/`, with a cus
 
 ### 1️⃣ Clone the repository
 ```bash
-git clone https://github.com/<your-username>/ecommerce-sales-pipeline.git
+git clone https://github.com/charayadev/ecommerce-sales-pipeline.git
 cd ecommerce-sales-pipeline
 ```
 
